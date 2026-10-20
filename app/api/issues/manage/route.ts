@@ -33,6 +33,14 @@ async function handle(req:NextRequest,method:string){
  lines[line]=match[1]+(checked?"x":" ")+match[2];
  return NextResponse.json(await gh(base,"PATCH",{body:lines.join("\n")}),{headers});
  }
+ if(input.action==="planning"&&method==="PATCH"){
+ const before=await gh(base,"GET",undefined);
+ if(typeof input.priority!=="string"||!["P0","P1","P2","P3","none"].includes(input.priority)||typeof input.due!=="string"|| (input.due!==""&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(input.due)))return fail("우선순위/날짜 오류",400);
+ const labels:(string[])=(before.labels||[]).map((x:{name:string})=>x.name).filter((x:string)=>!/^priority:P[0-3]$/.test(x));
+ if(input.priority!=="none")labels.push("priority:"+input.priority);
+ const oldBody=String(before.body||"");const body=oldBody.replace(/\\n?<!-- mylab:due=\\d{4}-\\d{2}-\\d{2} -->/g,"")+(input.due?"\\n<!-- mylab:due="+input.due+" -->":"");
+ return NextResponse.json(await gh(base,"PATCH",{labels,body}),{headers});
+ }
  if(input.action==="comment"&&method==="POST"){
  if(typeof input.body!=="string"||!input.body.trim()||input.body.length>30000)return fail("댓글을 입력하세요.",400);
  return NextResponse.json(await gh(base+"/comments","POST",{body:input.body}),{headers});
