@@ -1,0 +1,63 @@
+name: Android
+on:
+  pull_request:
+    paths: ['android/**', '.github/workflows/android.yml']
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Build signed APK and AAB using configured signing secrets (main only)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Test, lint and build debug APK
+        run: bash ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Signed release (manual main builds only)
+        if: github.event_name == 'workflow_dispatch' && inputs.release && github.ref == 'refs/heads/main'
+        env:
+          MYLAB_KEYSTORE_BASE64: ${{ secrets.MYLAB_KEYSTORE_BASE64 }}
+          MYLAB_KEYSTORE_PASSWORD: ${{ secrets.MYLAB_KEYSTORE_PASSWORD }}
+          MYLAB_KEY_ALIAS: ${{ secrets.MYLAB_KEY_ALIAS }}
+          MYLAB_KEY_PASSWORD: ${{ secrets.MYLAB_KEY_PASSWORD }}
+        run: |
+          set -eu
+          : "${MYLAB_KEYSTORE_BASE64:?Signing key secret is required}"
+          : "${MYLAB_KEYSTORE_PASSWORD:?Signing password secret is required}"
+          : "${MYLAB_KEY_ALIAS:?Signing alias secret is required}"
+          : "${MYLAB_KEY_PASSWORD:?Signing key password secret is required}"
+          export MYLAB_KEYSTORE_PATH="$RUNNER_TEMP/mylab-upload.jks"
+          trap 'rm -f "$MYLAB_KEYSTORE_PATH"' EXIT
+          printf '%s' "$MYLAB_KEYSTORE_BASE64" | base64 --decode > "$MYLAB_KEYSTORE_PATH"
+          chmod 600 "$MYLAB_KEYSTORE_PATH"
+          bash ./gradlew --no-daemon lintRelease assembleRelease bundleRelease
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mylab-android-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
+            android/app/build/reports/lint-results-*.html
+            android/app/build/reports/tests/**

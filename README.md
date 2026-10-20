@@ -1,6 +1,9 @@
 # MyLab
 Private project workspace for `ogw07222-tech` GitHub Projects #4.
 
+## Android app
+The WebView Android app, build instructions, signing requirements and device-test checklist are in [android/README.md](android/README.md). It reuses the production web service without embedding any server credentials. Google Play publishing is a separate step.
+
 ## Features
 - Read Projects V2 fields and first 100 issue items through GitHub GraphQL.
 - Group issues by Status and update Status from the dashboard.
