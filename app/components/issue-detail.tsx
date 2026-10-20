@@ -70,6 +70,7 @@ function DetailContent({issueKey, cache, close}: {issueKey: string; cache: Map<s
   const [commentError, setCommentError] = useState("");
   const [revision, setRevision] = useState(0);
   const [editing,setEditing]=useState(false),[draftTitle,setDraftTitle]=useState(""),[draftBody,setDraftBody]=useState(""),[draftState,setDraftState]=useState("open"),[commentDraft,setCommentDraft]=useState(""),[editComment,setEditComment]=useState<number|null>(null),[commentEditText,setCommentEditText]=useState(""),[saving,setSaving]=useState(false);
+  const [priority,setPriority]=useState("none"),[due,setDue]=useState("");
   const commentRequest = useRef<AbortController | null>(null);
   useEffect(() => () => commentRequest.current?.abort(), []);
   useEffect(() => {
