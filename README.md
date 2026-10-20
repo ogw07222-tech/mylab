@@ -29,3 +29,11 @@ Private project workspace for `ogw07222-tech` GitHub Projects #4.
 - The token grants powerful access: use a dedicated least-privilege credential when GitHub supports it. Rotate if exposed.
 - Runtime secrets are never returned from API routes.
 - For a private personal deployment, protect deployment preview URLs too.
+
+## Done item cleanup
+- Vercel Cron calls `/api/cron/cleanup-done` once per day at 03:00 UTC (12:00 KST).
+- Add a `CRON_SECRET` server environment variable in Vercel (long random value). Without this secret, cleanup is disabled with HTTP 401.
+- Completed items are **removed only from Projects #4**, not deleted from their GitHub repositories.
+- Uses the Project item `updatedAt` timestamp: an item with status Done and **no project-item edits for at least five days** is removed. This is a conservative proxy for completion time; modifying an item after completion restarts the inactivity interval.
+- Protect the endpoint using `CRON_SECRET`, never disclose it or put it in source control.
+- GitHub Actions may re-add removed issues later if their issue labels change; consider removing the `status:in-progress`/`status:idea` label when marking them Done and avoid future triggers for archived items.
