@@ -6,7 +6,11 @@ Private project workspace for `ogw07222-tech` GitHub Projects #4.
 - Group issues by Status and update Status from the dashboard.
 - Create GitHub Issues with task checklists, label `status:idea` if it exists, and add to Projects #4.
 - Password-protected dashboard with HMAC-signed HttpOnly SameSite=Strict cookies.
-- Client polling every 20 seconds when the page is visible.
+- Manual refresh only; no client polling.
+- Open Issue cards inside the app: Markdown, read-only tasks/progress, metadata and opt-in paginated comments.
+- Issue deep links use #issue=owner/repository/number. Browser Back and Escape close the dialog and preserve the board.
+- Details are cached in memory for up to 30 issues during the signed-in session; use the detail refresh button for current content.
+- Raw HTML is ignored, unsafe URL schemes are blocked, and attachment images open as links without loading remote trackers.
 - No model calls or model usage charges in this first release.
 
 ## Deploy
