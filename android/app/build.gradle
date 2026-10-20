@@ -1,0 +1,44 @@
+plugins { id 'com.android.application' }
+
+def signingValues = ['MYLAB_KEYSTORE_PATH', 'MYLAB_KEYSTORE_PASSWORD', 'MYLAB_KEY_ALIAS', 'MYLAB_KEY_PASSWORD']
+def releaseSigning = signingValues.every { System.getenv(it) }
+if (signingValues.any { System.getenv(it) } && !releaseSigning) {
+    throw new GradleException('All four MYLAB signing variables must be configured together.')
+}
+if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') } && !releaseSigning) {
+    throw new GradleException('Release builds require the four MYLAB signing variables. See android/README.md.')
+}
+android {
+    namespace 'com.vacode.mylab'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    defaultConfig {
+        applicationId 'com.vacode.mylab'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+        buildConfigField 'String', 'BASE_URL', '"https://mylab-phi-lemon.vercel.app/"'
+    }
+    signingConfigs {
+        if (releaseSigning) {
+            release {
+                storeFile file(System.getenv('MYLAB_KEYSTORE_PATH'))
+                storePassword System.getenv('MYLAB_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('MYLAB_KEY_ALIAS')
+                keyPassword System.getenv('MYLAB_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug { applicationIdSuffix '.debug'; versionNameSuffix '-debug' }
+        release {
+            if (releaseSigning) signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError true; checkReleaseBuilds true }
+}
+dependencies { testImplementation 'junit:junit:4.13.2' }

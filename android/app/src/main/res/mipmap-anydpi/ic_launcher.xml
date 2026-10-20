@@ -1,0 +1,5 @@
+<!-- Android 13+ uses the monochrome-aware override in mipmap-anydpi-v33. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MonochromeLauncherIcon">
+    <background android:drawable="@android:color/black" />
+    <foreground android:drawable="@drawable/ic_brand" />
+</adaptive-icon>

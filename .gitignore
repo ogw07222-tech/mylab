@@ -3,3 +3,10 @@ node_modules
 .env*
 !.env.example
 *.tsbuildinfo
+android/.gradle/
+android/**/build/
+android/local.properties
+*.jks
+*.keystore
+*.p12
+signing.properties
