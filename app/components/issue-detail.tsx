@@ -81,7 +81,7 @@ function DetailContent({issueKey, cache, close}: {issueKey: string; cache: Map<s
       if (controller.signal.aborted) return;
       if (cache.size >= 30) cache.delete(cache.keys().next().value!);
       cache.set(issueKey, {detail: value});
-      setDetail(value);setDraftTitle(value.title);setDraftBody(value.body);setDraftState(value.state);setEditing(false);
+      setDetail(value);setDraftTitle(value.title);setDraftBody(value.body);setDraftState(value.state);setPriority(value.labels.find(x=>/^priority:P[0-3]$/.test(x))?.slice(9)||"none");setDue(/<!-- mylab:due=(\\d{4}-\\d{2}-\\d{2}) -->/.exec(value.body)?.[1]||"");setEditing(false);
       setDiscussion(undefined);
     }).catch(reason => {
       if (!controller.signal.aborted) setError(reason.message);
@@ -140,6 +140,7 @@ function DetailContent({issueKey, cache, close}: {issueKey: string; cache: Map<s
         </dl>
         <a href={detail.url} target="_blank" rel="noopener noreferrer">GitHub에서 열기 ↗</a>
         <div className="detail-actions" style={{marginTop:12}}><button className="ghost" onClick={()=>setEditing(v=>!v)}>{editing?"편집 닫기":"제목·본문·상태 편집"}</button></div>
+        <div className="panel" style={{marginTop:12}}><div className="two"><label>우선순위<select value={priority} onChange={e=>setPriority(e.target.value)}><option value="none">미지정</option>{["P0","P1","P2","P3"].map(x=><option key={x} value={x}>{x}</option>)}</select></label><label>마감일 (선택 사항)<input type="date" value={due} onChange={e=>setDue(e.target.value)}/></label></div><button style={{marginTop:12}} disabled={saving} onClick={()=>mutate("planning",{priority,due})}>우선순위·마감일 저장</button></div>
         {editing&&<div className="form panel" style={{marginTop:12}}><label>제목<input value={draftTitle} onChange={e=>setDraftTitle(e.target.value)}/></label><label>본문 Markdown<textarea rows={12} value={draftBody} onChange={e=>setDraftBody(e.target.value)}/></label><label>Issue 상태<select value={draftState} onChange={e=>setDraftState(e.target.value)}><option value="open">Open</option><option value="closed">Closed</option></select></label><button disabled={saving||!draftTitle.trim()} onClick={()=>mutate("issue",{title:draftTitle,body:draftBody,state:draftState})}>GitHub에 저장</button></div>}
         {checklist.length>0&&<section className="panel" style={{marginTop:12}}><strong>체크리스트 직접 관리</strong>{checklist.map(entry=><label key={entry.index} style={{display:"flex",gap:10,alignItems:"start",marginTop:10}}><input style={{width:18,marginTop:4}} type="checkbox" disabled={saving} checked={entry.match?.[1].toLowerCase()==="x"} onChange={e=>toggleCheck(entry.index,e.target.checked)}/><span>{entry.line.replace(/^\\s*(?:[-*+]\\s+|\\d+\\.\\s+)\\[[ xX]\\]\\s*/,"")}</span></label>)}</section>}
         {progress.total > 0 && <section className="checklist-summary" aria-label="체크리스트 진행률"><div className="top"><strong>작업 {progress.completed} / {progress.total}</strong><span className="muted tiny">읽기 전용</span></div><progress max={progress.total} value={progress.completed} aria-label="완료한 작업"/></section>}
